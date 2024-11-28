@@ -3,23 +3,19 @@ import logging
 import pandas as pd
 import spacy
 import nltk
-from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-# from nltk.stem import WordNetLemmatizer
-from nltk.sentiment.util import mark_negation
-
-# Based on https://www.geeksforgeeks.org/removing-stop-words-nltk-python/ and chapter 7/8
+from tqdm import tqdm
+import re
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 
 # Download resources
-logging.info("Downloading Resources...")
+logging.info("Downloading NLTK resources...")
 nltk.download('stopwords')
 nltk.download('punkt')
-nltk.download('wordnet')
 
-# spaCy model for lemmatization (medium model) "python -m spacy download en_core_web_sm"
+# Load spaCy model
 logging.info("Loading spaCy model...")
 nlp = spacy.load('en_core_web_sm')
 
@@ -29,32 +25,39 @@ df = pd.read_csv('Data/spotify_reviews_lightweight.csv', header=None, names=['ra
 
 # Preprocessing function
 def preprocess_text(text):
+    """Preprocess a single text string."""
+    # Lowercase
+    text = text.lower()
+
+    # Remove URLs and emails
+    text = re.sub(r'http\S+|www.\S+', '', text)
+    text = re.sub(r'\S+@\S+', '', text)
+
     # Tokenization
     tokens = word_tokenize(text)
 
-    # Mark negations
-    tokens = mark_negation(tokens)
+    # Remove punctuation, non-alphanumeric tokens, and stopwords
+    stop_words = spacy.lang.en.stop_words.STOP_WORDS
+    tokens = [t for t in tokens if t.isalnum() and t not in stop_words and t not in string.punctuation]
 
-    # Remove punctuation and stopwords
-    stop_words = set(stopwords.words('english'))
-    tokens = [t for t in tokens if t not in stop_words and t not in string.punctuation]
-
-    # Lemmatization
-    lemmatized_tokens = [token.lemma_ for token in nlp(' '.join(tokens))]
+    # Lemmatization (only alpha tokens)
+    lemmatized_tokens = [token.lemma_ for token in nlp(' '.join(tokens)) if token.is_alpha]
 
     return ' '.join(lemmatized_tokens)
 
 
-# Apply preprocessing
+# Apply preprocessing with progress bar
 logging.info("Preprocessing started...")
-df['processed_reviews'] = df['raw_reviews'].apply(preprocess_text)
+tqdm.pandas(desc="Preprocessing Reviews")
+# Create column header for processed reviews and populate with preprocessed text
+df['processed_reviews'] = df['raw_reviews'].progress_apply(preprocess_text)
 logging.info("Preprocessing finished...")
 
-# Save to CSV (into Data folder)
+# Save to CSV
 output_file = 'Data/reviews_preprocessed.csv'
 df['processed_reviews'].to_csv(output_file, index=False)
 
-# Print first few words of unprocessed and processed text
+# Print unprocessed and processed text
 print("Unprocessed Text (first few words):")
 print(df['raw_reviews'].iloc[0][:50])
 
