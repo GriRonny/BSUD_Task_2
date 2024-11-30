@@ -84,4 +84,4 @@ def main(input_file):
 
 # Call the main function
 if __name__ == "__main__":
-    main("Data/spotify_reviews_mini.csv")
+    main("Data/spotify_reviews_lightweight.csv")
