@@ -1,4 +1,5 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from tqdm import tqdm
 import pandas as pd
 import logging
 import seaborn as sns
@@ -11,25 +12,18 @@ logging.basicConfig(level=logging.INFO)
 analyzer = SentimentIntensityAnalyzer()
 
 
-# Define function to get sentiment score from text
-def vader_score(text):
-    """Calculate VADER compound sentiment score."""
-    scores = analyzer.polarity_scores(text)
-    return scores['compound']
-
-
-# Add sentiment label (positive or negative) based on compound VADER score
-def sentiment_label(compound_score, positive_threshold=0.5, negative_threshold=-0.5):
+# Add sentiment label based on VADER's default thresholds
+def sentiment_label(compound_score, positive_threshold=0.05, negative_threshold=-0.05):
     """Assign sentiment label based on thresholds."""
-    if compound_score > positive_threshold:
+    if compound_score >= positive_threshold:
         return 'positive'
-    elif compound_score < negative_threshold:
+    elif compound_score <= negative_threshold:
         return 'negative'
     else:
         return 'neutral'
 
 
-# Perform sentiment analysis (optimized version)
+# Perform sentiment analysis
 def vader_analysis(text):
     """Return both VADER compound score and sentiment label."""
     scores = analyzer.polarity_scores(text)
@@ -38,7 +32,7 @@ def vader_analysis(text):
     return pd.Series([compound_score, label], index=['vader_score', 'vader_label'])
 
 
-# Visualization function
+# Visualization functions
 def visualize_sentiment_distribution(df):
     """Create a bar plot showing the distribution of sentiment labels."""
     sns.set(style="whitegrid")
@@ -50,10 +44,19 @@ def visualize_sentiment_distribution(df):
     plt.ylabel("Count")
     plt.show()
 
+def visualize_compound_score_distribution(df):
+    """Create a histogram showing the distribution of compound sentiment scores."""
+    plt.figure(figsize=(10, 6))
+    sns.histplot(df['vader_score'], bins=30, kde=True)
+    plt.title("Compound Score Distribution")
+    plt.xlabel("VADER Compound Score")
+    plt.ylabel("Frequency")
+    plt.show()
+
 
 # Main function
 def main(input_file):
-    """Perform sentiment analysis on processed reviews in a CSV file."""
+    """Perform sentiment analysis on raw reviews in a CSV file."""
     try:
         df = pd.read_csv(input_file)
     except FileNotFoundError:
@@ -61,11 +64,12 @@ def main(input_file):
     except pd.errors.EmptyDataError:
         raise ValueError(f"Input file '{input_file}' is empty or invalid.")
 
-    if 'processed_reviews' not in df.columns:
-        raise KeyError("The required column 'processed_reviews' is missing from the input file.")
+    if 'raw_reviews' not in df.columns:
+        raise KeyError("The required column 'raw_reviews' is missing from the input file.")
 
     logging.info("Performing sentiment analysis...")
-    df[['vader_score', 'vader_label']] = df['processed_reviews'].apply(vader_analysis)
+    tqdm.pandas(desc="Apply Vader Analysis")
+    df[['vader_score', 'vader_label']] = df['raw_reviews'].progress_apply(vader_analysis)
 
     # Save results to CSV
     output_file = 'Data/reviews_VADER.csv'
@@ -75,8 +79,9 @@ def main(input_file):
     # Visualization
     logging.info("Creating sentiment distribution visualization...")
     visualize_sentiment_distribution(df)
+    visualize_compound_score_distribution(df)
 
 
 # Call the main function
 if __name__ == "__main__":
-    main("Data/reviews_preprocessed.csv")
+    main("Data/spotify_reviews_mini.csv")
