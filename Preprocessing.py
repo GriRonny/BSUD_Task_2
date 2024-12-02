@@ -5,7 +5,7 @@ import spacy
 import nltk
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm
-import re
+import re  # Regex package
 import emoji
 
 # Setup logging
@@ -64,7 +64,7 @@ df['processed_reviews'].to_csv(output_file, index=False)
 
 # Print unprocessed and processed text for verification
 print("Unprocessed Text (first few words):")
-print(df['raw_reviews'].iloc[0][:50])
+print(df['raw_reviews'].iloc[1][:50])
 
 print("\nProcessed Text (first few words):")
-print(df['processed_reviews'].iloc[0][:50])
+print(df['processed_reviews'].iloc[1][:50])

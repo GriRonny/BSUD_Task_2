@@ -13,6 +13,7 @@ df_vader = pd.read_csv('Data/reviews_VADER.csv')
 # Combine DataFrames
 df_combined = pd.concat([df_processed, df_vader[['vader_score', 'vader_label']]], axis=1)
 df_combined.reset_index(drop=True, inplace=True)
+df_combined.to_csv('Data/reviews_combined.csv', index=False)
 
 # Separate positive and negative reviews
 positive_reviews = df_combined[df_combined['vader_label'] == 'positive']['processed_reviews']
@@ -27,7 +28,7 @@ vectorizer_negative = TfidfVectorizer(max_df=0.9, min_df=2, stop_words='english'
 X_negative = vectorizer_negative.fit_transform(negative_reviews)
 
 # Dimensionality Reduction
-n_components = 100
+n_components = 10
 
 # Positive reviews
 svd_positive = TruncatedSVD(n_components=n_components, random_state=42)
@@ -38,7 +39,7 @@ svd_negative = TruncatedSVD(n_components=n_components, random_state=42)
 X_negative_reduced = svd_negative.fit_transform(X_negative)
 
 # Clustering
-k = 8
+k = 3
 
 # Positive reviews
 kmeans_positive = KMeans(n_clusters=k, random_state=42)

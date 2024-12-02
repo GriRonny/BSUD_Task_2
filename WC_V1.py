@@ -35,4 +35,4 @@ def create_word_cloud(file_path, n_words):
 
 
 # Create word cloud
-create_word_cloud("Data/reviews_preprocessed.csv", 100)
+create_word_cloud("Data/reviews_preprocessed.csv", 15)
