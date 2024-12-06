@@ -5,7 +5,7 @@ from sklearn.cluster import KMeans
 import numpy as np
 
 # Load preprocessed reviews
-df_processed = pd.read_csv('Data/reviews_preprocessed.csv')
+df_processed = pd.read_csv('../Data/reviews_preprocessed.csv')
 
 # Load VADER sentiment results
 df_vader = pd.read_csv('Data/reviews_VADER.csv')

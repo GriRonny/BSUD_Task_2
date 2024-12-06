@@ -21,7 +21,7 @@ logging.info("Loading spaCy model...")
 nlp = spacy.load('en_core_web_sm')
 
 # Load data
-df = pd.read_csv('Data/spotify_reviews_lightweight.csv', header=None, names=['raw_reviews'])
+df = pd.read_csv('../Data/spotify_reviews_lightweight.csv', header=None, names=['raw_reviews'])
 
 # Function to map emojis to text. E.g., "Python is 👍" is transformed to "Python is :thumbs_up:"
 def map_emojis(text):
@@ -59,7 +59,7 @@ df['processed_reviews'] = df['raw_reviews'].progress_apply(preprocess_text)
 logging.info("Preprocessing finished...")
 
 # Save to CSV
-output_file = 'Data/reviews_preprocessed.csv'
+output_file = '../Data/reviews_preprocessed.csv'
 df['processed_reviews'].to_csv(output_file, index=False)
 
 # Print unprocessed and processed text for verification

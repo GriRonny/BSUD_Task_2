@@ -4,35 +4,65 @@ from wordcloud import WordCloud
 from collections import Counter
 
 
-def create_word_cloud(file_path, n_words):
+def create_word_clouds(file_path, n_words, custom_stopwords=None):
     # Read CSV File
-    df = pd.read_csv(file_path, header=None)
+    df_processed = pd.read_csv(file_path)
 
-    # Combine all rows into a single string
-    text_input = ' '.join(df[0].astype(str))
+    # Ensure column names are properly set
+    if "Tokens" not in df_processed.columns or "Label" not in df_processed.columns:
+        raise ValueError("CSV file must have 'Tokens' and 'Label' columns.")
 
-    print("First few rows of the data:")
-    print(df.head())  # To verify data loaded correctly
+    # Default stopwords
+    if custom_stopwords is None:
+        custom_stopwords = set()
+    else:
+        custom_stopwords = set(custom_stopwords)
 
-    # Count word frequencies
-    word_counts = Counter(text_input.split())
+    # Filter by sentiment
+    positive_reviews = df_processed[df_processed["Label"] == 'positive']["Tokens"]
+    neutral_reviews = df_processed[df_processed["Label"] == 'neutral']["Tokens"]
+    negative_reviews = df_processed[df_processed["Label"] == 'negative']["Tokens"]
 
-    # Get the top N most common words
-    top_n_words = dict(word_counts.most_common(n_words))
+    # Function to generate and display a word cloud
+    def generate_word_cloud(reviews, sentiment):
+        # Combine all reviews into a single string
+        text_input = ' '.join(reviews.astype(str))
 
-    print(f"\nTop {n_words} words:")
-    for word, count in top_n_words.items():
-        print(f"{word}: {count}")
+        # Filter custom stopwords
+        word_counts = Counter(text_input.split())
+        filtered_word_counts = {word: count for word, count in word_counts.items() if
+                                word.lower() not in custom_stopwords}
 
-    # Generate Word Cloud
-    wordcloud = WordCloud(width=800, height=600, background_color='white').generate_from_frequencies(top_n_words)
+        # Get the top N most common words
+        top_n_words = dict(Counter(filtered_word_counts).most_common(n_words))
 
-    # Display the word cloud
-    plt.figure(figsize=(10, 10))
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis('off')
-    plt.show()
+        # Generate Word Cloud
+        wordcloud = WordCloud(
+            width=800,
+            height=600,
+            background_color='white'
+        ).generate_from_frequencies(top_n_words)
+
+        # Display the Word Cloud
+        plt.figure(figsize=(10, 10))
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis('off')
+        plt.title(f"{sentiment.capitalize()} Reviews Word Cloud", fontsize=18)
+        plt.show()
+
+    # Generate word clouds for each sentiment
+    print("\nGenerating word cloud for positive reviews...")
+    generate_word_cloud(positive_reviews, "positive")
+
+    print("\nGenerating word cloud for neutral reviews...")
+    generate_word_cloud(neutral_reviews, "neutral")
+
+    print("\nGenerating word cloud for negative reviews...")
+    generate_word_cloud(negative_reviews, "negative")
 
 
-# Create word cloud
-create_word_cloud("Data/reviews_preprocessed.csv", 15)
+# Define custom stopwords
+custom_stopwords = {"app", "spotify", "play", "song", "music", "use"}
+
+# Create word clouds
+create_word_clouds("Data/reviews_preprocessed.csv", 100, custom_stopwords)
