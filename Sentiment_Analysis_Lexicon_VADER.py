@@ -72,7 +72,7 @@ def main(input_file):
     df[['vader_score', 'vader_label']] = df['raw_reviews'].progress_apply(vader_analysis)
 
     # Save results to CSV
-    output_file = 'Data/reviews_VADER.csv'
+    output_file = 'Data/VADER/reviews_VADER.csv'
     df.to_csv(output_file, index=False)
     logging.info(f"Sentiment analysis complete. Results saved to {output_file}.")
 
