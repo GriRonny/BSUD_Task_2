@@ -1,2 +1,2 @@
 # BSUD_Task_2
-Group work assignment for the BSUD module.
+Python code for the second task of the BSUD module.
